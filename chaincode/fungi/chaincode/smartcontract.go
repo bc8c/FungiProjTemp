@@ -7,6 +7,7 @@ import (
 	"time"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/json"
 	"math"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -73,9 +74,60 @@ func (s *SmartContract) CreateRandomFungus (ctx contractapi.TransactionContextIn
 	}
 
 	// 랜덤 DNA 생성
-	s. _generateRandomDna(ctx,name)
+	dna := s._generateRandomDna(ctx,name)
 	// 버섯 생성 및 원장에 저장하는 함수
-	// clientID 를 key값으로 하는 값을 +1 저장 ( 보유한 버섯의 수 count )
+	s._createFungus(ctx,name,dna)
+	return nil
+}
+
+func (s *SmartContract) _createFungus (ctx contractapi.TransactionContextInterface, name string, dna uint) error {
+
+	fungusCountBytes, err := s._getState(ctx,fungusCountKey)
+	if err != nil {
+		return err
+	}
+	fungusIdINT, _ := strconv.Atoi(string(fungusCountBytes))
+	fungusId := uint(fungusIdINT) 									
+
+	// Check ClientID
+	clientId, err := ctx.GetClientIdentity().GetID()				
+	if err != nil {
+		return fmt.Errorf("failed to get ClientID : %v ", err)
+	}
+
+	nowTime := time.Now().Unix()
+	readyTime := nowTime + 60										
+	
+	fungus := Fungus{
+		FungusId:	fungusId,
+		Name:		name,
+		Owner:		clientId,
+		Dna:		dna,
+		ReadyTime:	uint32(readyTime),
+	}
+
+	// marshal FungusId
+	assetJSON,  err := json.Marshal(fungus)
+	if err != nil {
+		return fmt.Errorf("failed to marshal fungus : %v ", err)
+	}
+	// PutState FungusId
+	err = ctx.GetStub().PutState(strconv.Itoa(int(fungusId)), assetJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put fungus : %v ", err)
+	}
+	
+	// fungusCount ++
+	fungusId += 1
+	err = ctx.GetStub().PutState(fungusCountKey, []byte(strconv.Itoa(int(fungusId))))
+	if err != nil {
+		return fmt.Errorf("failed to put fungus : %v ", err)
+	}
+	// ownerFungusCount ++ 
+	err = s._updateOwnerFungusCount(ctx,clientId, 1)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
