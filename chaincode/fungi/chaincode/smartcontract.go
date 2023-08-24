@@ -146,8 +146,38 @@ func (s *SmartContract) _generateRandomDna (ctx contractapi.TransactionContextIn
 	return dna	
 }
 
+func (s *SmartContract) GetFungiByOwner (ctx contractapi.TransactionContextInterface) ([]*Fungus, error) {
 
-// 외부에서 호출 가능한 interface ....
-// 초기화에 관련된 함수
-// 버섯생성 ( CreateRandomFungus )​ 
-// 버섯조회 ( GetFungiByOwner )
+	// ClientId를 기준으로 소유한 모든 버섯정보를 조회해와서 반환한다.
+	// Check ClientID
+	clientId, err := ctx.GetClientIdentity().GetID()				
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ClientID : %v ", err)
+	}
+
+	queryString := fmt.Sprintf(`{"selector":{"owner":"%s"}}`,clientId)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil,fmt.Errorf("failed to getQueryResult : %v ", err)
+	}
+	defer resultsIterator.Close()
+
+	var fungi []*Fungus
+
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var fungus Fungus
+		err = json.Unmarshal(queryResult.Value, &fungus)
+		if err != nil {
+			return nil, err
+		}
+		fungi = append(fungi, &fungus)
+	}
+
+	return fungi, nil
+}
