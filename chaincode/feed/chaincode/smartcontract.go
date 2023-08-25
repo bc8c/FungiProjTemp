@@ -119,7 +119,7 @@ func (s *SmartContract) _generateRandomDna (ctx contractapi.TransactionContextIn
 
 	// make 14digits dna
 	dna := dnaHash % uint(math.Pow(10, 10))
-	dna = dna - (dna % 100)
+	dna = dna - (dna % 100) + 99
 
 	return dna	
 }
