@@ -18,16 +18,14 @@ type SmartContract struct{
 }
 
 // Fungus Asset describes basic details
-type Fungus struct {
-	FungusId	uint	`json:"fungusid"`
+type Feed struct {
+	FeedId		uint	`json:"feedid"`
 	Name		string	`json:"name"`
-	Owner		string	`json:"owner"`
 	Dna			uint	`json:"dna"`
-	ReadyTime	uint32	`json:"readytime"`
 }
 
 // Define Key names for options
-const fungusCountKey = "FungusCount"
+const feedsCountKey = "feedsCount"
 
 // init the chaincode 
 func (s *SmartContract) Initialize (ctx contractapi.TransactionContextInterface) error {
@@ -37,93 +35,79 @@ func (s *SmartContract) Initialize (ctx contractapi.TransactionContextInterface)
 	if err != nil {
 		return fmt.Errorf("failed to get MSPID : %v ", err)
 	}
-	if clientMSPID != "Org1MSP" {
+	if clientMSPID != "Org2MSP" {
 		return fmt.Errorf("client is not auothorized to initalize fuongusCount : %v ", err)
 	}
 
 	// Check contract is not already set
-	fungusCount, err := ctx.GetStub().GetState(fungusCountKey)
+	feedsCount, err := ctx.GetStub().GetState(feedsCountKey)
 	if err != nil {
 		return fmt.Errorf("failed to get fungusCount : %v ", err)
 	}
-	if fungusCount != nil {
-		return fmt.Errorf("fungusCount is already set : %v ", err)
+	if feedsCount != nil {
+		return fmt.Errorf("feedsCount is already set : %v ", err)
 	}
 
-	// Initilize FungusCountKey to zero(0)
-	err = ctx.GetStub().PutState(fungusCountKey, []byte(strconv.Itoa(0)))
+	// Initilize feedsCount to zero(0)
+	err = ctx.GetStub().PutState(feedsCountKey, []byte(strconv.Itoa(0)))
 	if err != nil {
-		return fmt.Errorf("failed to set fungusCount : %v ", err)
+		return fmt.Errorf("failed to set feedsCount : %v ", err)
 	}
 	return err
 }
 
-func (s *SmartContract) CreateRandomFungus (ctx contractapi.TransactionContextInterface, name string) error {
-	
-	// Check ClientID
-	clientId, err := ctx.GetClientIdentity().GetID()
+func (s *SmartContract) CreateRandomFeed (ctx contractapi.TransactionContextInterface, name string) error {
+	// Check authorization
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed to get ClientID : %v ", err)
+		return fmt.Errorf("failed to get MSPID : %v ", err)
 	}
-	exists, err := s._assetExists(ctx, clientId)
-	if err != nil{
-		return err
+	if clientMSPID != "Org2MSP" {
+		return fmt.Errorf("client is not auothorized to initalize fuongusCount : %v ", err)
 	}
-	if exists {
-		return fmt.Errorf("client has already created an inital fungus")
-	}
-
+	
 	// 랜덤 DNA 생성
 	dna := s._generateRandomDna(ctx,name)
 	// 버섯 생성 및 원장에 저장하는 함수
-	s._createFungus(ctx,name,dna)
+	s._createFeed(ctx,name,dna)
+	if err !=nil {
+		return fmt.Errorf("failed to crateFeeds : %v", err)
+	}
 	return nil
 }
 
-func (s *SmartContract) _createFungus (ctx contractapi.TransactionContextInterface, name string, dna uint) error {
+func (s *SmartContract) _createFeed (ctx contractapi.TransactionContextInterface, name string, dna uint) error {
 
-	fungusCountBytes, err := s._getState(ctx,fungusCountKey)
+	feedsCountBytes, err := s._getState(ctx,feedsCountKey)
 	if err != nil {
 		return err
 	}
-	fungusIdINT, _ := strconv.Atoi(string(fungusCountBytes))
-	fungusId := uint(fungusIdINT) 									
-
-	// Check ClientID
-	clientId, err := ctx.GetClientIdentity().GetID()				
-	if err != nil {
-		return fmt.Errorf("failed to get ClientID : %v ", err)
-	}
-
-	nowTime := time.Now().Unix()
-	readyTime := nowTime + 60										
+	feedsIdINT, _ := strconv.Atoi(string(feedsCountBytes))
+	feedsId := uint(feedsIdINT) 									
 	
-	fungus := Fungus{
-		FungusId:	fungusId,
+	feed := Feed{
+		FeedId:		feedsId,
 		Name:		name,
-		Owner:		clientId,
 		Dna:		dna,
-		ReadyTime:	uint32(readyTime),
 	}
 
-	// marshal FungusId
-	assetJSON,  err := json.Marshal(fungus)
+	// marshal FeedsId
+	assetJSON,  err := json.Marshal(feed)
 	if err != nil {
-		return fmt.Errorf("failed to marshal fungus : %v ", err)
+		return fmt.Errorf("failed to marshal Feed : %v ", err)
 	}
-	// PutState FungusId
-	err = ctx.GetStub().PutState(strconv.Itoa(int(fungusId)), assetJSON)
+	// PutState FeedsId
+	err = ctx.GetStub().PutState(strconv.Itoa(int(feedsId)), assetJSON)
 	if err != nil {
-		return fmt.Errorf("failed to put fungus : %v ", err)
-	}
-	
-	// fungusCount ++
-	fungusId += 1
-	err = ctx.GetStub().PutState(fungusCountKey, []byte(strconv.Itoa(int(fungusId))))
-	if err != nil {
-		return fmt.Errorf("failed to put fungus : %v ", err)
+		return fmt.Errorf("failed to put feed : %v ", err)
 	}
 	
+	// FeedsCount ++
+	feedsId += 1
+	err = ctx.GetStub().PutState(feedsCountKey, []byte(strconv.Itoa(int(feedsId))))
+	if err != nil {
+		return fmt.Errorf("failed to put feeds : %v ", err)
+	}	
 	return nil
 }
 
