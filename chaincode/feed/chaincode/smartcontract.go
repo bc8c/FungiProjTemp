@@ -1,4 +1,3 @@
-// 현재는 fungusfactory 코드를 복사해온 상태이므로 수정하여 구현 해야함.
 package chaincode
 
 import (
@@ -112,7 +111,6 @@ func (s *SmartContract) _createFeed (ctx contractapi.TransactionContextInterface
 }
 
 func (s *SmartContract) _generateRandomDna (ctx contractapi.TransactionContextInterface, name string) uint {
-	
 	unixTime := time.Now().Unix()
 	data := strconv.Itoa(int(unixTime)) + name
 	hash := sha256.New()
@@ -124,4 +122,20 @@ func (s *SmartContract) _generateRandomDna (ctx contractapi.TransactionContextIn
 	dna = dna - (dna % 100)
 
 	return dna	
+}
+
+func (s *SmartContract) GetFeed (ctx contractapi.TransactionContextInterface, feedId uint) (*Feed, error) {
+
+	feedsCountBytes, err := s._getState(ctx, strconv.Itoa(int(feedId)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get feed : %v",err)
+	}
+
+	var feed Feed
+	err = json.Unmarshal(feedsCountBytes, &feed)
+	if err != nil {
+		return nil, fmt.Errorf("failed to Unmarshal feed : %v",err)
+	}
+
+	return &feed, nil
 }
