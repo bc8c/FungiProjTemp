@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <a href="/logout">logout</a>
+    <p>Welcome to <%= title %></p>
+    <% if (result == "feed" ) { %>
+      <!-- 먹이공장 화면 출력부분 -->
+      <!-- 먹이 생성 기능 버튼 -->
+      <!-- 먹이생성 라우팅 ( /createFeed) -->
+      <p>먹이공장에 오신것을 환영합니다.</p>
+    <% } else {%>
+      <!-- 버섯공장(일반사용자) 화면 출력 부분 -->
+      <!-- 로그인된 사용자가 보유한 버섯의 리스트를 모두 화면에 출력 -->
+      <!-- 각 버섯리스튼 버섯의 정보 + 증식하기 기능 ( 먹이 id 입력란도 함께 ) -->
+      <!-- 태초버섯생성 라우팅 ( /createFungus) -->
+      <!-- 증식하기 라우팅 ( /createFungus/feed) -->
+    <p>버섯공장에 오신것을 환영합니다.</p>
+    <% } %>
+  </body>  
+</html>
