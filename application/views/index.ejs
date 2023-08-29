@@ -3,23 +3,50 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
   </head>
   <body>
     <h1><%= title %></h1>
     <a href="/logout">logout</a>
     <p>Welcome to <%= title %></p>
-    <% if (result == "feed" ) { %>
-      <!-- 먹이공장 화면 출력부분 -->
-      <!-- 먹이 생성 기능 버튼 -->
-      <!-- 먹이생성 라우팅 ( /createFeed) -->
-      <p>먹이공장에 오신것을 환영합니다.</p>
-    <% } else {%>
-      <!-- 버섯공장(일반사용자) 화면 출력 부분 -->
-      <!-- 로그인된 사용자가 보유한 버섯의 리스트를 모두 화면에 출력 -->
-      <!-- 각 버섯리스튼 버섯의 정보 + 증식하기 기능 ( 먹이 id 입력란도 함께 ) -->
-      <!-- 태초버섯생성 라우팅 ( /createFungus) -->
-      <!-- 증식하기 라우팅 ( /createFungus/feed) -->
-    <p>버섯공장에 오신것을 환영합니다.</p>
-    <% } %>
+    
+
+    <% if(result == "feed"){ %>
+      <a href="/createFeed" class="btn btn-primary">먹이생성</a>
+    <% } else if (result == "") { %>
+      <!-- 보유버섯이 없는 경우     -->
+      <a href="/createFungus" class="btn btn-primary">버섯생성</a>
+    <% } else { %>
+      <!-- 보유버섯이 있는경우 -->
+      <div class="container text-center">
+        <div class="row row-cols-auto">
+          <% var fungi = JSON.parse(result) %>
+          <% for (var i=0; i <fungi.length; i++ ) {%>
+            <% var date = new Date(fungi[i].readytime * 1000 + 9 * 60 * 60 *1000) %>
+            <div class="col">
+              <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title"><%= fungi[i].name %></h5>
+                  <p class="card-text">버섯id : <%= fungi[i].fungusid %></p>
+                  <p class="card-text">dna : <%= fungi[i].dna %></p>
+                  <p class="card-text">증식가능시간 : <%= date.toLocaleTimeString("ko-KR") %></p>
+                  <p class="card-text"> 소유주 : <%= fungi[i].owner %> </p>
+                  <div class="card-header">
+                    <h5>버섯증식하기</h5>
+                    <form action="/createFungus/feed" method="post">
+                      <input type="hidden" name="fungusid" class="form-control" value=<%= fungi[i].fungusid %>><br>
+                      <label>먹이ID : </label>
+                      <input type="text" name="feedid" class="form-control"><br>
+                      <input type="submit" value="증식하기" class="btn btn-primary">
+                    </form>
+                  </div>                
+                </div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% } %>    
   </body>  
 </html>

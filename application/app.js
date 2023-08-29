@@ -8,6 +8,8 @@ var cert = require('./public/js/cert')
 var indexRouter = require('./routes/index');
 var signupRouter = require('./routes/signup');
 var loginRouter = require('./routes/login');
+var createFungusRouter = require('./routes/createFungus');
+var createFeedRouter = require('./routes/createFeed');
 
 var app = express();
 
@@ -24,6 +26,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/signup', signupRouter);
 app.use('/login', loginRouter);
+app.use('/createFungus', createFungusRouter);
+app.use('/createFeed', createFeedRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
